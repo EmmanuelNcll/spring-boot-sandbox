@@ -1,0 +1,241 @@
+package trainning.api.controller;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
+import trainning.api.dto.CreateUserDto;
+import trainning.api.model.UserModel;
+import trainning.api.repository.RoleRepository;
+import trainning.api.repository.UserRepository;
+import trainning.api.service.AuthService;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.hamcrest.Matchers.hasSize;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
+public class UserControllerV1Test {
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
+    @Autowired
+    private AuthService authService;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    private long simpleUserId;
+    private String simpleUserToken;
+    private String userAdminToken;
+    private String adminToken;
+
+    @BeforeEach
+    public void setUpDatabase() { // TODO: factorize
+        String password = "1234";
+        userRepository.deleteAll();
+
+        UserModel simpleUser = new UserModel();
+        simpleUser.setUsername("simpleUser");
+        simpleUser.setPassword(passwordEncoder.encode(password));
+        simpleUser.setRole(roleRepository.findByName("SIMPLE_USER"));
+        simpleUserId = userRepository.save(simpleUser).getId();
+        simpleUserToken = authService.login(simpleUserId, password);
+
+        UserModel userAdminUser = new UserModel();
+        userAdminUser.setUsername("userAdminUser");
+        userAdminUser.setPassword(passwordEncoder.encode(password));
+        userAdminUser.setRole(roleRepository.findByName("USER_ADMIN"));
+        Long userAdminUserId = userRepository.save(userAdminUser).getId();
+        userAdminToken = authService.login(userAdminUserId, password);
+
+        UserModel adminUser = new UserModel();
+        adminUser.setUsername("adminUser");
+        adminUser.setPassword(passwordEncoder.encode(password));
+        adminUser.setRole(roleRepository.findByName("ADMIN"));
+        Long adminUserId = userRepository.save(adminUser).getId();
+        adminToken = authService.login(adminUserId, password);
+    }
+
+    @Test
+    public void getUserSimpleUserForbidden() throws Exception {
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/user/" + simpleUserId)
+                                                              .header("Authorization", "Bearer " + simpleUserToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void getUserUserAdminUserSuccess() throws Exception {
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/user/" + simpleUserId)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(simpleUserId))
+                .andExpect(jsonPath("$.username").value("simpleUser"))
+                .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+    }
+
+    @Test
+    public void getUserAdminUserSuccess() throws Exception {
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/user/" + simpleUserId)
+                                                              .header("Authorization", "Bearer " + adminToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(simpleUserId))
+                .andExpect(jsonPath("$.username").value("simpleUser"))
+                .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+    }
+
+    @Test
+    public void getUserWrongIdNotFound() throws Exception {
+        long userId = 999L;
+
+        ResultActions resultActions = mockMvc.perform(get("/api/v1/user/" + userId)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isNotFound()).andExpect(content().string("User with ID " + userId + " not found"));
+    }
+
+    @Test
+    public void registerUserWithoutToken() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void registerUserWithoutPermissionForbidden() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+                                                              .header("Authorization", "Bearer " + simpleUserToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void registerUserUsernameAlreadyExists() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("simpleUser", "1234", Collections.singleton("SIMPLE_USER"));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isConflict())
+                .andExpect(content().string("Username already taken: simpleUser"));
+    }
+
+    @Test
+    public void registerUserInvalidRole() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("INVALID_ROLE"));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string("Role does not exists: INVALID_ROLE"));
+    }
+
+    @Test
+    public void registerUserAdminRole() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("newAdmin", "1234", Collections.singleton("ADMIN"));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string("Cannot register user with ADMIN role"));
+    }
+
+    @Test
+    public void registerUserSuccessCreated() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.username").value("newUser"))
+                .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+    }
+
+    @Test
+    public void registerUserWithAdminSuccessCreated() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+                                                              .header("Authorization", "Bearer " + adminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.username").value("newUser"))
+                .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+    }
+
+    @Test
+    public void registerUserMultipleRolesSuccessCreated() throws Exception {
+        Set<String> roles = new HashSet<>();
+        roles.add("SIMPLE_USER");
+        roles.add("USER_ADMIN");
+        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", roles);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isCreated())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.username").value("newUser"))
+                .andExpect(jsonPath("$.roles", hasSize(2)));
+    }
+}
