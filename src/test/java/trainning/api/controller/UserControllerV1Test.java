@@ -48,6 +48,9 @@ public class UserControllerV1Test {
     private String userAdminToken;
     private String adminToken;
 
+    public static final String getUserEndpoint = "/v1/user/";
+    public static final String createUserEndpoint = "/v1/user/create";
+
     @BeforeEach
     public void setUpDatabase() { // TODO: factorize
         String password = "1234";
@@ -77,7 +80,7 @@ public class UserControllerV1Test {
 
     @Test
     public void getUserSimpleUserForbidden() throws Exception {
-        ResultActions resultActions = mockMvc.perform(get("/api/v1/user/" + simpleUserId)
+        ResultActions resultActions = mockMvc.perform(get(getUserEndpoint + simpleUserId)
                                                               .header("Authorization", "Bearer " + simpleUserToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
@@ -86,7 +89,7 @@ public class UserControllerV1Test {
 
     @Test
     public void getUserUserAdminUserSuccess() throws Exception {
-        ResultActions resultActions = mockMvc.perform(get("/api/v1/user/" + simpleUserId)
+        ResultActions resultActions = mockMvc.perform(get(getUserEndpoint + simpleUserId)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
@@ -99,7 +102,7 @@ public class UserControllerV1Test {
 
     @Test
     public void getUserAdminUserSuccess() throws Exception {
-        ResultActions resultActions = mockMvc.perform(get("/api/v1/user/" + simpleUserId)
+        ResultActions resultActions = mockMvc.perform(get(getUserEndpoint + simpleUserId)
                                                               .header("Authorization", "Bearer " + adminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
@@ -114,7 +117,7 @@ public class UserControllerV1Test {
     public void getUserWrongIdNotFound() throws Exception {
         long userId = 999L;
 
-        ResultActions resultActions = mockMvc.perform(get("/api/v1/user/" + userId)
+        ResultActions resultActions = mockMvc.perform(get(getUserEndpoint + userId)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
@@ -126,7 +129,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -138,7 +141,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
                                                               .header("Authorization", "Bearer " + simpleUserToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -151,7 +154,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("simpleUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -165,7 +168,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("INVALID_ROLE"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -179,7 +182,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newAdmin", "1234", Collections.singleton("ADMIN"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -193,7 +196,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -209,7 +212,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
                                                               .header("Authorization", "Bearer " + adminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -228,7 +231,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", roles);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post("/api/v1/user/create")
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));

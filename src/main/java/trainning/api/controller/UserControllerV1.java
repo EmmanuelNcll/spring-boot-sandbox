@@ -11,7 +11,7 @@ import trainning.api.mapper.UserMapper;
 import trainning.api.service.UserService;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/v1")
 public class UserControllerV1 {
     @Autowired
     private UserService userService;

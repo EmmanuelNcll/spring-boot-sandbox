@@ -8,7 +8,7 @@ import trainning.api.dto.AuthDto;
 import trainning.api.service.AuthService;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/v1")
 public class AuthControllerV1 {
     @Autowired
     private AuthService authService;
