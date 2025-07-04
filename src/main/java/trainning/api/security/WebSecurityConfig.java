@@ -25,8 +25,8 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/ping").permitAll()
-                .requestMatchers("/api/v1/auth").permitAll()
+                .requestMatchers("/ping").permitAll()
+                .requestMatchers("/v1/auth").permitAll()
                 .anyRequest().authenticated()
         ).addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(
