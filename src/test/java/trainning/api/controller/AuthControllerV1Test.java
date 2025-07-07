@@ -37,17 +37,17 @@ public class AuthControllerV1Test {
     private PasswordEncoder passwordEncoder;
 
     private long simpleUserId;
-    private final String simpleUser = "simpleUser";
-    private final String password = "1234";
-    private final String authEndpoint = "/v1/auth";
+    private static final String SIMPLE_USER = "simpleUser";
+    private static final String PASSWORD = "1234";
+    private static final String AUTH_ENDPOINT = "/v1/auth";
 
     @BeforeEach
     public void setUpDatabase() {
         userRepository.deleteAll();
 
         UserModel simpleUser = new UserModel();
-        simpleUser.setUsername(this.simpleUser);
-        simpleUser.setPassword(passwordEncoder.encode(password));
+        simpleUser.setUsername(SIMPLE_USER);
+        simpleUser.setPassword(passwordEncoder.encode(PASSWORD));
         simpleUser.setRole(roleRepository.findByName("SIMPLE_USER"));
         simpleUserId = userRepository.save(simpleUser).getId();
     }
@@ -55,7 +55,7 @@ public class AuthControllerV1Test {
     @Test
     public void invalidPayload() throws Exception {
         ResultActions resultActions = mockMvc.perform(
-                post(authEndpoint)
+                post(AUTH_ENDPOINT)
                         .content("{}")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -66,11 +66,11 @@ public class AuthControllerV1Test {
 
     @Test
     public void invalidUser() throws Exception {
-        AuthDto authDto = new AuthDto(999L, password);
+        AuthDto authDto = new AuthDto(999L, PASSWORD);
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(
-                post(authEndpoint)
+                post(AUTH_ENDPOINT)
                         .content(objectMapper.writeValueAsString(authDto))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -93,7 +93,7 @@ public class AuthControllerV1Test {
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(
-                post(authEndpoint)
+                post(AUTH_ENDPOINT)
                         .content(objectMapper.writeValueAsString(authDto))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -113,7 +113,7 @@ public class AuthControllerV1Test {
     @Test
     public void wrongMethod() throws Exception {
         ResultActions resultActions = mockMvc.perform(
-                get(authEndpoint)
+                get(AUTH_ENDPOINT)
                         .accept(MediaType.APPLICATION_JSON)
         );
 
@@ -122,11 +122,11 @@ public class AuthControllerV1Test {
 
     @Test
     public void validAuthentication() throws Exception {
-        AuthDto authDto = new AuthDto(simpleUserId, password);
+        AuthDto authDto = new AuthDto(simpleUserId, PASSWORD);
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(
-                post(authEndpoint)
+                post(AUTH_ENDPOINT)
                         .content(objectMapper.writeValueAsString(authDto))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
