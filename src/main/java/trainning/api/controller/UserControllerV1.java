@@ -29,6 +29,7 @@ public class UserControllerV1 {
     @Operation(summary = "Get user by ID", description = "Retrieves a user by their ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid"),
             @ApiResponse(responseCode = "403", description = "User not authorized to do this operation"),
             @ApiResponse(responseCode = "404", description = "User not found"),
     })
@@ -44,6 +45,7 @@ public class UserControllerV1 {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid"),
             @ApiResponse(responseCode = "403", description = "User not authorized to do this operation"),
             @ApiResponse(responseCode = "409", description = "Username already exists"),
     })
