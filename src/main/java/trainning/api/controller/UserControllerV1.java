@@ -1,6 +1,7 @@
 package trainning.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -29,8 +30,9 @@ public class UserControllerV1 {
     @Operation(summary = "Get user by ID", description = "Retrieves a user by their ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found"),
-            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation"),
-            @ApiResponse(responseCode = "404", description = "User not found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
     @GetMapping("/user/{id}")
@@ -43,9 +45,10 @@ public class UserControllerV1 {
     @Operation(summary = "Create a new user", description = "Registers a new user with the provided details")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "User created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found"),
-            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation"),
-            @ApiResponse(responseCode = "409", description = "Username already exists"),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "409", description = "Username already exists", content = @Content(mediaType = "application/json")),
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
     @PostMapping("/user/create")
