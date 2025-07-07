@@ -1,6 +1,7 @@
 package trainning.api.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -24,9 +25,9 @@ public class AuthControllerV1 {
     @Operation(summary = "Authenticate user", description = "Authenticates the user and returns a JWT token")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successful authentication"),
-            @ApiResponse(responseCode = "400", description = "Invalid request payload / Invalid password"),
-            @ApiResponse(responseCode = "404", description = "User not found"),
-            @ApiResponse(responseCode = "405", description = "Method not allowed")
+            @ApiResponse(responseCode = "400", description = "Invalid request payload / Invalid password", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "405", description = "Method not allowed", content = @Content(mediaType = "application/json"))
     })
     @PostMapping("/auth")
     public ResponseEntity<String> auth(@RequestBody @Valid AuthDto authRequest) {
