@@ -164,6 +164,16 @@ public class UserControllerV1Test {
     }
 
     @Test
+    public void registerUserInvalidPayload() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content("{}"));
+
+        resultActions.andExpect(status().isBadRequest());
+    }
+
+    @Test
     public void registerUserInvalidRole() throws Exception {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("INVALID_ROLE"));
 
@@ -241,4 +251,6 @@ public class UserControllerV1Test {
                 .andExpect(jsonPath("$.username").value("newUser"))
                 .andExpect(jsonPath("$.roles", hasSize(2)));
     }
+
+    // TODO: Create user with no roles
 }
