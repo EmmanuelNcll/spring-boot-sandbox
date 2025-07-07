@@ -39,6 +39,7 @@ public class AuthControllerV1Test {
     private long simpleUserId;
     private final String simpleUser = "simpleUser";
     private final String password = "1234";
+    private final String authEndpoint = "/v1/auth";
 
     @BeforeEach
     public void setUpDatabase() {
@@ -52,10 +53,10 @@ public class AuthControllerV1Test {
     }
 
     @Test
-    public void wrongPayload() throws Exception {
+    public void invalidPayload() throws Exception {
         ResultActions resultActions = mockMvc.perform(
-                post("/api/v1/auth")
-                        .content("")
+                post(authEndpoint)
+                        .content("{}")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
         );
@@ -69,7 +70,7 @@ public class AuthControllerV1Test {
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(
-                post("/api/v1/auth")
+                post(authEndpoint)
                         .content(objectMapper.writeValueAsString(authDto))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -92,7 +93,7 @@ public class AuthControllerV1Test {
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(
-                post("/api/v1/auth")
+                post(authEndpoint)
                         .content(objectMapper.writeValueAsString(authDto))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -112,7 +113,7 @@ public class AuthControllerV1Test {
     @Test
     public void wrongMethod() throws Exception {
         ResultActions resultActions = mockMvc.perform(
-                get("/api/v1/auth")
+                get(authEndpoint)
                         .accept(MediaType.APPLICATION_JSON)
         );
 
@@ -125,7 +126,7 @@ public class AuthControllerV1Test {
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(
-                post("/api/v1/auth")
+                post(authEndpoint)
                         .content(objectMapper.writeValueAsString(authDto))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)

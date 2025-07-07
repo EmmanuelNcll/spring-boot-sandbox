@@ -25,8 +25,11 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/ping").permitAll()
-                .requestMatchers("/api/v1/auth").permitAll()
+                .requestMatchers("/ping").permitAll()
+                .requestMatchers("/v1/auth").permitAll()
+                .requestMatchers("/swagger-ui/*").permitAll()
+                .requestMatchers("/v3/api-docs").permitAll()
+                .requestMatchers("/v3/api-docs/*").permitAll()
                 .anyRequest().authenticated()
         ).addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(
