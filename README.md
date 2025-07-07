@@ -49,6 +49,7 @@ First, you need to create a `.env` file at the root of the project with the foll
 ```
 JWT_SECRET=
 POSTGRES_PASSWORD=
+ADMIN_PASSWORD=
 ```
 
 Then, you need to build the project using:
@@ -66,4 +67,3 @@ docker-compose up -d
 - Add nginx as a load balancer + manage HTTPS ?
 - Add log mechanism
 - Write documentation (user doc, dev doc, api/tech doc)
-- Better management of admin user default password

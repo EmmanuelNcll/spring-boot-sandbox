@@ -1,6 +1,7 @@
 package trainning.api.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,9 @@ public class DataInitializationConfig {
     private RoleRepository roleRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Value("${admin.password}")
+    private String adminPassword;
 
     @Bean
     @Transactional
@@ -40,7 +44,7 @@ public class DataInitializationConfig {
             if (userRepository.count() == 0) { // Create admin user
                 UserModel adminUser = new UserModel();
                 adminUser.setUsername("admin");
-                adminUser.setPassword(passwordEncoder.encode("ap1_ADmiN_p@55w0rD"));
+                adminUser.setPassword(passwordEncoder.encode(adminPassword));
                 adminUser.setRole(
                         roleRepository.findByName("ADMIN")
                 );
