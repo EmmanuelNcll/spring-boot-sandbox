@@ -10,6 +10,8 @@ You need to install ``maven``, ``Java 17`` and ``Docker``.
 
 How to launch the dev environment locally, on port `8080`, with a PostgreSQL database on port `5432`.
 
+> NB: Swagger UI will be available at http://localhost:8080/api/swagger-ui/index.html.
+
 ### On Linux
 
 The following command will start a PostgreSQL database in a Docker container and launch the Spring Boot API using maven:
@@ -63,5 +65,4 @@ docker-compose up -d
 
 - Add nginx as a load balancer + manage HTTPS ?
 - Add log mechanism
-- Automatically generate swagger documentation
 - Write documentation (user doc, dev doc, api/tech doc)

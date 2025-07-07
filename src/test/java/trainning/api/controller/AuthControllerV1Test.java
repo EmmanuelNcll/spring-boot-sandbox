@@ -53,10 +53,10 @@ public class AuthControllerV1Test {
     }
 
     @Test
-    public void wrongPayload() throws Exception {
+    public void invalidPayload() throws Exception {
         ResultActions resultActions = mockMvc.perform(
                 post(authEndpoint)
-                        .content("")
+                        .content("{}")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
         );

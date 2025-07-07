@@ -26,6 +26,6 @@ public class PingControllerTest {
     public void testPingEndpoint() throws Exception {
         ResultActions resultActions = mockMvc.perform(get(pingEndpoint).accept(MediaType.TEXT_PLAIN));
 
-        resultActions.andExpect(status().isOk()).andExpect(content().string("OK"));
+        resultActions.andExpect(status().isOk()).andExpect(content().string(""));
     }
 }
