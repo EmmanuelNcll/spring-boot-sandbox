@@ -35,8 +35,8 @@ public class WebSecurityConfig {
         .csrf(AbstractHttpConfigurer::disable) // Only for testing purposes
         .exceptionHandling(
             exceptionHandling -> exceptionHandling
-                .authenticationEntryPoint(unauthorizedEntryPoint())
-                .accessDeniedHandler(forbiddenHandler())
+                    .authenticationEntryPoint(unauthorizedEntryPoint())
+                    .accessDeniedHandler(forbiddenHandler())
         );
 
         return http.build();

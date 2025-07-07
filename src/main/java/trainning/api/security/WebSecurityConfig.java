@@ -30,9 +30,9 @@ public class WebSecurityConfig {
                 .anyRequest().authenticated()
         ).addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
         .exceptionHandling(
-                exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(unauthorizedEntryPoint())
-                        .accessDeniedHandler(forbiddenHandler())
+            exceptionHandling -> exceptionHandling
+                    .authenticationEntryPoint(unauthorizedEntryPoint())
+                    .accessDeniedHandler(forbiddenHandler())
         );
 
         return http.build();
