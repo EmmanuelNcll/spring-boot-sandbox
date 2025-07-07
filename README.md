@@ -66,5 +66,4 @@ docker-compose up -d
 - Add nginx as a load balancer + manage HTTPS ?
 - Add log mechanism
 - Write documentation (user doc, dev doc, api/tech doc)
-- Use lombok to simplify classes
 - Better management of admin user default password
