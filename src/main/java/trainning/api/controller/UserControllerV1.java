@@ -47,7 +47,7 @@ public class UserControllerV1 {
             @ApiResponse(responseCode = "201", description = "User created successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation / Cannot register user with ADMIN role", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "409", description = "Username already exists", content = @Content(mediaType = "application/json")),
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
@@ -59,9 +59,22 @@ public class UserControllerV1 {
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
+    @Operation(summary = "Delete a user", description = "Deletes a user by their ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User found"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
+    })
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
+    @DeleteMapping("/user/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable long id) {
+        return ResponseEntity.status(HttpStatus.OK).body(
+                userService.deleteUser(id)
+        );
+    }
+
     // TODO: add password modification endpoint?
 
     // TODO: add role modification endpoint?
-
-    // TODO: add endpoint to delete users?
 }

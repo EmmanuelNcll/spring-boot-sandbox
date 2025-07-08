@@ -3,6 +3,7 @@ package trainning.api.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import trainning.api.exception.AdminRoleException;
 import trainning.api.exception.InvalidRoleException;
 import trainning.api.exception.UserAlreadyExistsException;
 import trainning.api.exception.UserNotFoundException;
@@ -45,7 +46,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(rawPassword));
         for(RoleModel role : userRoles) {
             if (role.getName().equals("ADMIN")) {
-                throw new InvalidRoleException("Cannot register user with ADMIN role");
+                throw new AdminRoleException("Cannot register user with ADMIN role");
             }
             user.setRole(role);
         }
@@ -55,5 +56,17 @@ public class UserService {
 
     public UserModel getUser(Long id) {
         return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with ID " + id + " not found"));
+    }
+
+    public String deleteUser(long id) {
+        UserModel user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with ID " + id + " not found"));
+
+        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
+            throw new AdminRoleException("Cannot delete user with ADMIN role");
+        }
+
+        userRepository.delete(user);
+
+        return "";
     }
 }

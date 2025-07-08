@@ -24,6 +24,7 @@ import java.util.Set;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,11 +45,13 @@ public class UserControllerV1Test {
     private PasswordEncoder passwordEncoder;
 
     private long simpleUserId;
+    private long adminUserId;
     private String simpleUserToken;
     private String userAdminToken;
     private String adminToken;
 
     public static final String GET_USER_ENDPOINT = "/v1/user/";
+    public static final String DELETE_USER_ENDPOINT = "/v1/user/";
     public static final String CREATE_USER_ENDPOINT = "/v1/user/create";
     public static final String PASSWORD = "1234";
 
@@ -62,7 +65,7 @@ public class UserControllerV1Test {
         Long userAdminUserId = createUser("userAdminUser", "USER_ADMIN");
         userAdminToken = authService.login(userAdminUserId, PASSWORD);
 
-        Long adminUserId = createUser("adminUser", "ADMIN");
+        adminUserId = createUser("adminUser", "ADMIN");
         adminToken = authService.login(adminUserId, PASSWORD);
     }
 
@@ -193,7 +196,7 @@ public class UserControllerV1Test {
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
 
-        resultActions.andExpect(status().isBadRequest())
+        resultActions.andExpect(status().isForbidden())
                 .andExpect(content().string("Cannot register user with ADMIN role"));
     }
 
@@ -262,4 +265,62 @@ public class UserControllerV1Test {
                 .andExpect(jsonPath("$.roles", hasSize(2)));
     }
 
+    @Test
+    public void deleteUserWithoutTokenUnauthorized() throws Exception {
+        ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + simpleUserId)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    public void deleteUserWithoutPermissionForbidden() throws Exception {
+        ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + simpleUserId)
+                                                              .header("Authorization", "Bearer " + simpleUserToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void deleteUserWrongIdNotFound() throws Exception {
+        long userId = 999L;
+
+        ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + userId)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isNotFound())
+                .andExpect(content().string("User with ID " + userId + " not found"));
+    }
+
+    @Test
+    public void deleteUserWithAdminRoleForbidden() throws Exception {
+        ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + adminUserId)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void deleteUserWithUserAdminSuccessOk() throws Exception {
+        ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + simpleUserId)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
+
+
+    @Test
+    public void deleteUserWithAdminSuccessOk() throws Exception {
+        ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + simpleUserId)
+                                                              .header("Authorization", "Bearer " + adminToken)
+                                                              .accept(MediaType.APPLICATION_JSON));
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
 }
