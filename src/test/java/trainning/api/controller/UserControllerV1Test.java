@@ -48,39 +48,35 @@ public class UserControllerV1Test {
     private String userAdminToken;
     private String adminToken;
 
-    public static final String getUserEndpoint = "/v1/user/";
-    public static final String createUserEndpoint = "/v1/user/create";
+    public static final String GET_USER_ENDPOINT = "/v1/user/";
+    public static final String CREATE_USER_ENDPOINT = "/v1/user/create";
+    public static final String PASSWORD = "1234";
 
     @BeforeEach
-    public void setUpDatabase() { // TODO: factorize
-        String password = "1234";
+    public void setUpDatabase() {
         userRepository.deleteAll();
 
+        simpleUserId = createUser("simpleUser", "SIMPLE_USER");
+        simpleUserToken = authService.login(simpleUserId, PASSWORD);
+
+        Long userAdminUserId = createUser("userAdminUser", "USER_ADMIN");
+        userAdminToken = authService.login(userAdminUserId, PASSWORD);
+
+        Long adminUserId = createUser("adminUser", "ADMIN");
+        adminToken = authService.login(adminUserId, PASSWORD);
+    }
+
+    private long createUser(String username, String role) {
         UserModel simpleUser = new UserModel();
-        simpleUser.setUsername("simpleUser");
-        simpleUser.setPassword(passwordEncoder.encode(password));
-        simpleUser.setRole(roleRepository.findByName("SIMPLE_USER"));
-        simpleUserId = userRepository.save(simpleUser).getId();
-        simpleUserToken = authService.login(simpleUserId, password);
-
-        UserModel userAdminUser = new UserModel();
-        userAdminUser.setUsername("userAdminUser");
-        userAdminUser.setPassword(passwordEncoder.encode(password));
-        userAdminUser.setRole(roleRepository.findByName("USER_ADMIN"));
-        Long userAdminUserId = userRepository.save(userAdminUser).getId();
-        userAdminToken = authService.login(userAdminUserId, password);
-
-        UserModel adminUser = new UserModel();
-        adminUser.setUsername("adminUser");
-        adminUser.setPassword(passwordEncoder.encode(password));
-        adminUser.setRole(roleRepository.findByName("ADMIN"));
-        Long adminUserId = userRepository.save(adminUser).getId();
-        adminToken = authService.login(adminUserId, password);
+        simpleUser.setUsername(username);
+        simpleUser.setPassword(passwordEncoder.encode(PASSWORD));
+        simpleUser.setRole(roleRepository.findByName(role));
+        return userRepository.save(simpleUser).getId();
     }
 
     @Test
     public void getUserSimpleUserForbidden() throws Exception {
-        ResultActions resultActions = mockMvc.perform(get(getUserEndpoint + simpleUserId)
+        ResultActions resultActions = mockMvc.perform(get(GET_USER_ENDPOINT + simpleUserId)
                                                               .header("Authorization", "Bearer " + simpleUserToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
@@ -89,7 +85,7 @@ public class UserControllerV1Test {
 
     @Test
     public void getUserUserAdminUserSuccess() throws Exception {
-        ResultActions resultActions = mockMvc.perform(get(getUserEndpoint + simpleUserId)
+        ResultActions resultActions = mockMvc.perform(get(GET_USER_ENDPOINT + simpleUserId)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
@@ -102,7 +98,7 @@ public class UserControllerV1Test {
 
     @Test
     public void getUserAdminUserSuccess() throws Exception {
-        ResultActions resultActions = mockMvc.perform(get(getUserEndpoint + simpleUserId)
+        ResultActions resultActions = mockMvc.perform(get(GET_USER_ENDPOINT + simpleUserId)
                                                               .header("Authorization", "Bearer " + adminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
@@ -117,7 +113,7 @@ public class UserControllerV1Test {
     public void getUserWrongIdNotFound() throws Exception {
         long userId = 999L;
 
-        ResultActions resultActions = mockMvc.perform(get(getUserEndpoint + userId)
+        ResultActions resultActions = mockMvc.perform(get(GET_USER_ENDPOINT + userId)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
@@ -129,7 +125,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
 
@@ -141,7 +137,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .header("Authorization", "Bearer " + simpleUserToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -154,7 +150,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("simpleUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -165,7 +161,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserInvalidPayload() throws Exception {
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content("{}"));
@@ -178,7 +174,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("INVALID_ROLE"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -192,7 +188,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newAdmin", "1234", Collections.singleton("ADMIN"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -206,7 +202,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -222,7 +218,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .header("Authorization", "Bearer " + adminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
@@ -241,7 +237,7 @@ public class UserControllerV1Test {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", roles);
 
         ObjectMapper objectMapper = new ObjectMapper();
-        ResultActions resultActions = mockMvc.perform(post(createUserEndpoint)
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));

@@ -8,27 +8,27 @@ You need to install ``maven``, ``Java 17`` and ``Docker``.
 
 ## 2. Launching dev environment
 
-How to launch the dev environment locally, on port `8080`, with a PostgreSQL database on port `5432`.
+How to launch the dev environment locally, on port `8080`, with a Postgres database on port `5432`.
 
 > NB: Swagger UI will be available at http://localhost:8080/api/swagger-ui/index.html.
 
 ### On Linux
 
-The following command will start a PostgreSQL database in a Docker container and launch the Spring Boot API using maven:
+The following command will start a Postgres database in a Docker container and launch the Spring Boot API using maven:
 ```bash
 ./run.sh
 ```
 
 ### On Windows
 
-The following command will start a PostgreSQL database in a Docker container and launch the Spring Boot API using maven:
+The following command will start a Postgres database in a Docker container and launch the Spring Boot API using maven:
 ```bash
 run.bat
 ```
 
 ### Using IntelliJ
 
-First, you need to start a PostgreSQL database in a Docker container
+First, you need to start a Postgres database in a Docker container
 
 ```bash
 docker run --name spring-api-db-postgres -e POSTGRES_PASSWORD=Password#1 -d -p 5432:5432 postgres
@@ -49,6 +49,7 @@ First, you need to create a `.env` file at the root of the project with the foll
 ```
 JWT_SECRET=
 POSTGRES_PASSWORD=
+ADMIN_PASSWORD=
 ```
 
 Then, you need to build the project using:
@@ -56,9 +57,9 @@ Then, you need to build the project using:
 mvn clean package -DskipTests
 ```
 
-Finnally, you can build and deploy the containerized API using:
+Finally, you can build and deploy the containerized API using:
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 ## 5. TODOs
@@ -66,5 +67,3 @@ docker-compose up -d
 - Add nginx as a load balancer + manage HTTPS ?
 - Add log mechanism
 - Write documentation (user doc, dev doc, api/tech doc)
-- Use lombok to simplify classes
-- Better management of admin user default password
