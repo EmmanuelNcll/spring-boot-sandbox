@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           java-version: '17'
-          distribution: 'openjdk'
+          distribution: 'sapmachine'
 
       - name: Cache Maven Packages
         uses: actions/cache@v3
