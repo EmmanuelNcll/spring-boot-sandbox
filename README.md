@@ -67,5 +67,4 @@ docker-compose up -d --build
 - Add nginx as a load balancer + manage HTTPS ?
 - Add log mechanism
 - Write documentation (user doc, dev doc, api/tech doc)
-- Create a CI pipeline on GitHub
 - Fix Spring runtime warnings
