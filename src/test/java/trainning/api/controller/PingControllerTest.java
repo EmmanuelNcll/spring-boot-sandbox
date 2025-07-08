@@ -20,11 +20,11 @@ public class PingControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private final String pingEndpoint = "/ping";
+    private static final String PING_ENDPOINT = "/ping";
 
     @Test
     public void testPingEndpoint() throws Exception {
-        ResultActions resultActions = mockMvc.perform(get(pingEndpoint).accept(MediaType.TEXT_PLAIN));
+        ResultActions resultActions = mockMvc.perform(get(PING_ENDPOINT).accept(MediaType.TEXT_PLAIN));
 
         resultActions.andExpect(status().isOk()).andExpect(content().string(""));
     }
