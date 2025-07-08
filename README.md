@@ -59,7 +59,7 @@ mvn clean package -DskipTests
 
 Finnally, you can build and deploy the containerized API using:
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
 
 ## 5. TODOs

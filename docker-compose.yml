@@ -11,6 +11,7 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
     depends_on:
       - postgres
     networks:
