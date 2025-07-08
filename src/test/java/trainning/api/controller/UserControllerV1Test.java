@@ -198,6 +198,20 @@ public class UserControllerV1Test {
     }
 
     @Test
+    public void registerUserWithoutRole() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", null);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string("At least one role must be provided"));
+    }
+
+    @Test
     public void registerUserSuccessCreated() throws Exception {
         CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
 
@@ -248,5 +262,4 @@ public class UserControllerV1Test {
                 .andExpect(jsonPath("$.roles", hasSize(2)));
     }
 
-    // TODO: Create user with no roles
 }

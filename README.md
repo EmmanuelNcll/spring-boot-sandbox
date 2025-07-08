@@ -67,3 +67,5 @@ docker-compose up -d --build
 - Add nginx as a load balancer + manage HTTPS ?
 - Add log mechanism
 - Write documentation (user doc, dev doc, api/tech doc)
+- Add community standards on GitHub
+- Switch on GitHub security tools

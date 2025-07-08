@@ -29,6 +29,9 @@ public class UserService {
         }
 
         List<RoleModel> allRoles = (List<RoleModel>) roleRepository.findAll();
+        if (roles == null || roles.isEmpty()) {
+            throw new InvalidRoleException("At least one role must be provided");
+        }
         List<RoleModel> userRoles = roles.stream()
                 .map(roleName -> allRoles.stream()
                         .filter(role -> role.getName().equals(roleName))
