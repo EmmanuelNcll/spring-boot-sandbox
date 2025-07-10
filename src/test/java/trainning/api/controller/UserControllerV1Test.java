@@ -1,6 +1,8 @@
 package trainning.api.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.lang.Assert;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -228,6 +230,9 @@ public class UserControllerV1Test {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username").value("newUser"))
                 .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+
+        JsonNode response = objectMapper.readTree(resultActions.andReturn().getResponse().getContentAsString());
+        Assert.isTrue(userRepository.existsById(response.get("id").asLong()));
     }
 
     @Test
@@ -244,6 +249,9 @@ public class UserControllerV1Test {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username").value("newUser"))
                 .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+
+        JsonNode response = objectMapper.readTree(resultActions.andReturn().getResponse().getContentAsString());
+        Assert.isTrue(userRepository.existsById(response.get("id").asLong()));
     }
 
     @Test
@@ -263,6 +271,9 @@ public class UserControllerV1Test {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username").value("newUser"))
                 .andExpect(jsonPath("$.roles", hasSize(2)));
+
+        JsonNode response = objectMapper.readTree(resultActions.andReturn().getResponse().getContentAsString());
+        Assert.isTrue(userRepository.existsById(response.get("id").asLong()));
     }
 
     @Test
@@ -304,23 +315,27 @@ public class UserControllerV1Test {
     }
 
     @Test
-    public void deleteUserWithUserAdminSuccessOk() throws Exception {
+    public void deleteUserWithUserAdminSuccess() throws Exception {
         ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + simpleUserId)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isOk())
                 .andExpect(content().string(""));
+
+        Assert.isTrue(!userRepository.existsById(simpleUserId));
     }
 
 
     @Test
-    public void deleteUserWithAdminSuccessOk() throws Exception {
+    public void deleteUserWithAdminSuccess() throws Exception {
         ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + simpleUserId)
                                                               .header("Authorization", "Bearer " + adminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isOk())
                 .andExpect(content().string(""));
+
+        Assert.isTrue(!userRepository.existsById(simpleUserId));
     }
 }
