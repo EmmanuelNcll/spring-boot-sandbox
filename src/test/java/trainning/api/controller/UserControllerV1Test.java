@@ -47,28 +47,37 @@ public class UserControllerV1Test {
     private PasswordEncoder passwordEncoder;
 
     private long simpleUserId;
-    private long adminUserId;
+    private long userAdminId;
+    private long adminId;
     private String simpleUserToken;
     private String userAdminToken;
     private String adminToken;
 
-    public static final String GET_USER_ENDPOINT = "/v1/user/";
-    public static final String DELETE_USER_ENDPOINT = "/v1/user/";
-    public static final String CREATE_USER_ENDPOINT = "/v1/user/create";
-    public static final String PASSWORD = "1234";
+    public static final String API_PREFIX = "/v1/";
+    public static final String GET_USER_ENDPOINT = API_PREFIX + "user/";
+    public static final String DELETE_USER_ENDPOINT = API_PREFIX + "user/";
+    public static final String CREATE_USER_ENDPOINT = API_PREFIX + "user/create";
+    public static final String MODIFY_PASSWORD_PREFIX = API_PREFIX + "user/";
+    public static final String MODIFY_PASSWORD_SUFFIX = "/password";
+
+    public static final String SIMPLE_USER_USERNAME = "simpleUser";
+    public static final String USER_ADMIN_USERNAME = "userAdminUser";
+    public static final String ADMIN_USERNAME = "adminUser";
+    public static final String PASSWORD = "Password_1234";
+    public static final String INVALID_PASSWORD = "1234";
 
     @BeforeEach
     public void setUpDatabase() {
         userRepository.deleteAll();
 
-        simpleUserId = createUser("simpleUser", "SIMPLE_USER");
+        simpleUserId = createUser(SIMPLE_USER_USERNAME, "SIMPLE_USER");
         simpleUserToken = authService.login(simpleUserId, PASSWORD);
 
-        Long userAdminUserId = createUser("userAdminUser", "USER_ADMIN");
-        userAdminToken = authService.login(userAdminUserId, PASSWORD);
+        userAdminId = createUser(USER_ADMIN_USERNAME, "USER_ADMIN");
+        userAdminToken = authService.login(userAdminId, PASSWORD);
 
-        adminUserId = createUser("adminUser", "ADMIN");
-        adminToken = authService.login(adminUserId, PASSWORD);
+        adminId = createUser(ADMIN_USERNAME, "ADMIN");
+        adminToken = authService.login(adminId, PASSWORD);
     }
 
     private long createUser(String username, String role) {
@@ -85,7 +94,8 @@ public class UserControllerV1Test {
                                                               .header("Authorization", "Bearer " + simpleUserToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(status().isForbidden())
+                .andExpect(content().string(""));
     }
 
     @Test
@@ -97,7 +107,7 @@ public class UserControllerV1Test {
         resultActions.andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(simpleUserId))
-                .andExpect(jsonPath("$.username").value("simpleUser"))
+                .andExpect(jsonPath("$.username").value(SIMPLE_USER_USERNAME))
                 .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
     }
 
@@ -110,7 +120,7 @@ public class UserControllerV1Test {
         resultActions.andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(simpleUserId))
-                .andExpect(jsonPath("$.username").value("simpleUser"))
+                .andExpect(jsonPath("$.username").value(SIMPLE_USER_USERNAME))
                 .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
     }
 
@@ -122,24 +132,26 @@ public class UserControllerV1Test {
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isNotFound()).andExpect(content().string("User with ID " + userId + " not found"));
+        resultActions.andExpect(status().isNotFound())
+                .andExpect(content().string("User with ID " + userId + " not found"));
     }
 
     @Test
     public void registerUserWithoutToken() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
 
-        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(status().isUnauthorized())
+                .andExpect(content().string(""));
     }
 
     @Test
     public void registerUserWithoutPermissionForbidden() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -147,12 +159,13 @@ public class UserControllerV1Test {
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content(objectMapper.writeValueAsString(requestBody)));
 
-        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(status().isForbidden())
+                .andExpect(content().string(""));
     }
 
     @Test
     public void registerUserUsernameAlreadyExists() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("simpleUser", "1234", Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto(SIMPLE_USER_USERNAME, PASSWORD, Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -171,12 +184,13 @@ public class UserControllerV1Test {
                                                               .contentType(MediaType.APPLICATION_JSON)
                                                               .content("{}"));
 
-        resultActions.andExpect(status().isBadRequest());
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string(""));
     }
 
     @Test
     public void registerUserInvalidRole() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("INVALID_ROLE"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("INVALID_ROLE"));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -189,8 +203,22 @@ public class UserControllerV1Test {
     }
 
     @Test
+    public void registerUserInvalidPassword() throws Exception {
+        CreateUserDto requestBody = new CreateUserDto("newUser", INVALID_PASSWORD, Collections.singleton("SIMPLE_USER"));
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(objectMapper.writeValueAsString(requestBody)));
+
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string("Password must be at least 10 characters long, contain at least one digit, one lowercase letter, one uppercase letter, and one special character"));
+    }
+
+    @Test
     public void registerUserAdminRole() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newAdmin", "1234", Collections.singleton("ADMIN"));
+        CreateUserDto requestBody = new CreateUserDto("newAdmin", PASSWORD, Collections.singleton("ADMIN"));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -204,7 +232,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserWithoutRole() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", null);
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, null);
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -218,7 +246,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserSuccessCreated() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -237,7 +265,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserWithAdminSuccessCreated() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("SIMPLE_USER"));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -259,7 +287,7 @@ public class UserControllerV1Test {
         Set<String> roles = new HashSet<>();
         roles.add("SIMPLE_USER");
         roles.add("USER_ADMIN");
-        CreateUserDto requestBody = new CreateUserDto("newUser", "1234", roles);
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, roles);
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -281,7 +309,8 @@ public class UserControllerV1Test {
         ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + simpleUserId)
                                                               .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isUnauthorized());
+        resultActions.andExpect(status().isUnauthorized())
+                .andExpect(content().string(""));
     }
 
     @Test
@@ -290,7 +319,8 @@ public class UserControllerV1Test {
                                                               .header("Authorization", "Bearer " + simpleUserToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(status().isForbidden())
+                .andExpect(content().string(""));
     }
 
     @Test
@@ -307,11 +337,12 @@ public class UserControllerV1Test {
 
     @Test
     public void deleteUserWithAdminRoleForbidden() throws Exception {
-        ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + adminUserId)
+        ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + adminId)
                                                               .header("Authorization", "Bearer " + userAdminToken)
                                                               .accept(MediaType.APPLICATION_JSON));
 
-        resultActions.andExpect(status().isForbidden());
+        resultActions.andExpect(status().isForbidden())
+                .andExpect(content().string("Cannot delete user with ADMIN role"));
     }
 
     @Test
@@ -326,7 +357,6 @@ public class UserControllerV1Test {
         Assert.isTrue(!userRepository.existsById(simpleUserId));
     }
 
-
     @Test
     public void deleteUserWithAdminSuccess() throws Exception {
         ResultActions resultActions = mockMvc.perform(delete(DELETE_USER_ENDPOINT + simpleUserId)
@@ -338,4 +368,112 @@ public class UserControllerV1Test {
 
         Assert.isTrue(!userRepository.existsById(simpleUserId));
     }
+
+    @Test
+    public void modifyPasswordInvalidPayload() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + simpleUserId + MODIFY_PASSWORD_SUFFIX)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(""));
+
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    public void modifyPasswordInvalidPassword() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + simpleUserId + MODIFY_PASSWORD_SUFFIX)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(INVALID_PASSWORD));
+
+        resultActions.andExpect(status().isBadRequest())
+                .andExpect(content().string("Password must be at least 10 characters long, contain at least one digit, one lowercase letter, one uppercase letter, and one special character"));
+    }
+
+    @Test
+    public void modifyPasswordWithoutToken() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + simpleUserId + MODIFY_PASSWORD_SUFFIX)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(PASSWORD));
+
+        resultActions.andExpect(status().isUnauthorized())
+                .andExpect(content().string(""));
+    }
+
+    @Test
+    public void modifyPasswordWithoutPermission() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + adminId + MODIFY_PASSWORD_SUFFIX)
+                                                              .header("Authorization", "Bearer " + simpleUserToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(PASSWORD));
+
+        resultActions.andExpect(status().isForbidden())
+                .andExpect(content().string("User with ID " + simpleUserId + " is only allowed to modify his own password, not the one of user with ID " + adminId));
+    }
+
+    @Test
+    public void modifyPasswordWrongId() throws Exception {
+        long userId = 999L;
+
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + userId + MODIFY_PASSWORD_SUFFIX)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(PASSWORD));
+
+        resultActions.andExpect(status().isNotFound())
+                .andExpect(content().string("User with ID " + userId + " not found"));
+    }
+
+    @Test
+    public void modifyUserAdminPasswordByAdmin() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + userAdminId + MODIFY_PASSWORD_SUFFIX)
+                                                              .header("Authorization", "Bearer " + adminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(PASSWORD));
+
+        resultActions.andExpect(status().isForbidden())
+                .andExpect(content().string("It is not allowed to modify the password of a user with ADMIN or USER_ADMIN role, unless you are the user itself"));
+    }
+
+    @Test
+    public void modifyPasswordByUserSuccess() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + simpleUserId + MODIFY_PASSWORD_SUFFIX)
+                                                              .header("Authorization", "Bearer " + simpleUserToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(PASSWORD));
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(simpleUserId))
+                .andExpect(jsonPath("$.username").value(SIMPLE_USER_USERNAME));
+    }
+
+    @Test
+    public void modifyPasswordByUserAdminSuccess() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + userAdminId + MODIFY_PASSWORD_SUFFIX)
+                                                              .header("Authorization", "Bearer " + userAdminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(PASSWORD));
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(userAdminId))
+                .andExpect(jsonPath("$.username").value(USER_ADMIN_USERNAME));
+    }
+
+    @Test
+    public void modifyPasswordByAdminSuccess() throws Exception {
+        ResultActions resultActions = mockMvc.perform(post(MODIFY_PASSWORD_PREFIX + adminId + MODIFY_PASSWORD_SUFFIX)
+                                                              .header("Authorization", "Bearer " + adminToken)
+                                                              .contentType(MediaType.APPLICATION_JSON)
+                                                              .content(PASSWORD));
+
+        resultActions.andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(adminId))
+                .andExpect(jsonPath("$.username").value(ADMIN_USERNAME));
+    }
+
+    // TODO: factorize strings to constants
 }

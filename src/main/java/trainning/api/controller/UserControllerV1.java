@@ -42,23 +42,6 @@ public class UserControllerV1 {
         );
     }
 
-    @Operation(summary = "Create a new user", description = "Registers a new user with the provided details")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "User created successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found", content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation / Cannot register user with ADMIN role", content = @Content(mediaType = "application/json")),
-            @ApiResponse(responseCode = "409", description = "Username already exists", content = @Content(mediaType = "application/json")),
-    })
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
-    @PostMapping("/user/create")
-    public ResponseEntity<UserDto> registerUser(@RequestBody @Valid CreateUserDto userDto) {
-        UserDto createdUser = userMapper.toDto(
-                userService.registerUser(userDto.getUsername(), userDto.getPassword(), userDto.getRoles())
-        );
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-    }
-
     @Operation(summary = "Delete a user", description = "Deletes a user by their ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found"),
@@ -74,7 +57,40 @@ public class UserControllerV1 {
         );
     }
 
-    // TODO: add password modification endpoint?
+    @Operation(summary = "Modify user's password", description = "Modify the password of the user (can be done by the user itself)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Password modified successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload / Invalid password", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "405", description = "Wrong Method", content = @Content(mediaType = "application/json")),
+    })
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN', 'SIMPLE_USER')")
+    @PostMapping("/user/{id}/password")
+    public ResponseEntity<UserDto> modifyPassword(@PathVariable long id, @RequestBody @Valid String newPassword) {
+        UserDto modifiedUser = userMapper.toDto(
+                userService.modifyPassword(id, newPassword)
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(modifiedUser);
+    }
+
+    @Operation(summary = "Create a new user", description = "Registers a new user with the provided details")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "User created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found / Invalid password", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation / Cannot register user with ADMIN role", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "409", description = "Username already exists", content = @Content(mediaType = "application/json")),
+    })
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
+    @PostMapping("/user/create")
+    public ResponseEntity<UserDto> registerUser(@RequestBody @Valid CreateUserDto userDto) {
+        UserDto createdUser = userMapper.toDto(
+                userService.registerUser(userDto.getUsername(), userDto.getPassword(), userDto.getRoles())
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    }
 
     // TODO: add role modification endpoint?
 }

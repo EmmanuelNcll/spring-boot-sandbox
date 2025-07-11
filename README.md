@@ -69,3 +69,4 @@ docker-compose up -d --build
 - Write documentation (user doc, dev doc, api/tech doc)
 - Add community standards on GitHub
 - Switch on GitHub security tools
+- Use/generate "test as documentation"

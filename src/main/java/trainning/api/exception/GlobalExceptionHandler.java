@@ -32,4 +32,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleAdminRoleException(AdminRoleException ex) {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<String> handleInvalidPasswordException(InvalidPasswordException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(UserNotAllowedException.class)
+    public ResponseEntity<String> handleUnauthorizedException(UserNotAllowedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN);
+    }
 }
