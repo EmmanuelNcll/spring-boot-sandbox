@@ -70,3 +70,4 @@ docker-compose up -d --build
 - Add community standards on GitHub
 - Switch on GitHub security tools
 - Use/generate "test as documentation"
+- Add performance tests
