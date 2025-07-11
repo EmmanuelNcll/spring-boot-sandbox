@@ -14,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import trainning.api.dto.CreateUserDto;
+import trainning.api.model.Role;
 import trainning.api.model.UserModel;
 import trainning.api.repository.RoleRepository;
 import trainning.api.repository.UserRepository;
@@ -70,13 +71,13 @@ public class UserControllerV1Test {
     public void setUpDatabase() {
         userRepository.deleteAll();
 
-        simpleUserId = createUser(SIMPLE_USER_USERNAME, "SIMPLE_USER");
+        simpleUserId = createUser(SIMPLE_USER_USERNAME, Role.SIMPLE_USER.getName());
         simpleUserToken = authService.login(simpleUserId, PASSWORD);
 
-        userAdminId = createUser(USER_ADMIN_USERNAME, "USER_ADMIN");
+        userAdminId = createUser(USER_ADMIN_USERNAME, Role.USER_ADMIN.getName());
         userAdminToken = authService.login(userAdminId, PASSWORD);
 
-        adminId = createUser(ADMIN_USERNAME, "ADMIN");
+        adminId = createUser(ADMIN_USERNAME, Role.ADMIN.getName());
         adminToken = authService.login(adminId, PASSWORD);
     }
 
@@ -108,7 +109,7 @@ public class UserControllerV1Test {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(simpleUserId))
                 .andExpect(jsonPath("$.username").value(SIMPLE_USER_USERNAME))
-                .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+                .andExpect(jsonPath("$.roles[0].name").value(Role.SIMPLE_USER.getName()));
     }
 
     @Test
@@ -121,7 +122,7 @@ public class UserControllerV1Test {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(simpleUserId))
                 .andExpect(jsonPath("$.username").value(SIMPLE_USER_USERNAME))
-                .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+                .andExpect(jsonPath("$.roles[0].name").value(Role.SIMPLE_USER.getName()));
     }
 
     @Test
@@ -138,7 +139,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserWithoutToken() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton(Role.SIMPLE_USER.getName()));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -151,7 +152,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserWithoutPermissionForbidden() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton(Role.SIMPLE_USER.getName()));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -165,7 +166,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserUsernameAlreadyExists() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto(SIMPLE_USER_USERNAME, PASSWORD, Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto(SIMPLE_USER_USERNAME, PASSWORD, Collections.singleton(Role.SIMPLE_USER.getName()));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -204,7 +205,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserInvalidPassword() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", INVALID_PASSWORD, Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", INVALID_PASSWORD, Collections.singleton(Role.SIMPLE_USER.getName()));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -218,7 +219,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserAdminRole() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newAdmin", PASSWORD, Collections.singleton("ADMIN"));
+        CreateUserDto requestBody = new CreateUserDto("newAdmin", PASSWORD, Collections.singleton(Role.ADMIN.getName()));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -227,7 +228,7 @@ public class UserControllerV1Test {
                                                               .content(objectMapper.writeValueAsString(requestBody)));
 
         resultActions.andExpect(status().isForbidden())
-                .andExpect(content().string("Cannot register user with ADMIN role"));
+                .andExpect(content().string("Cannot register user with " + Role.ADMIN.getName() + " role"));
     }
 
     @Test
@@ -246,7 +247,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserSuccessCreated() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton(Role.SIMPLE_USER.getName()));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -257,7 +258,7 @@ public class UserControllerV1Test {
         resultActions.andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username").value("newUser"))
-                .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+                .andExpect(jsonPath("$.roles[0].name").value(Role.SIMPLE_USER.getName()));
 
         JsonNode response = objectMapper.readTree(resultActions.andReturn().getResponse().getContentAsString());
         Assert.isTrue(userRepository.existsById(response.get("id").asLong()));
@@ -265,7 +266,7 @@ public class UserControllerV1Test {
 
     @Test
     public void registerUserWithAdminSuccessCreated() throws Exception {
-        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton("SIMPLE_USER"));
+        CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, Collections.singleton(Role.SIMPLE_USER.getName()));
 
         ObjectMapper objectMapper = new ObjectMapper();
         ResultActions resultActions = mockMvc.perform(post(CREATE_USER_ENDPOINT)
@@ -276,7 +277,7 @@ public class UserControllerV1Test {
         resultActions.andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.username").value("newUser"))
-                .andExpect(jsonPath("$.roles[0].name").value("SIMPLE_USER"));
+                .andExpect(jsonPath("$.roles[0].name").value(Role.SIMPLE_USER.getName()));
 
         JsonNode response = objectMapper.readTree(resultActions.andReturn().getResponse().getContentAsString());
         Assert.isTrue(userRepository.existsById(response.get("id").asLong()));
@@ -285,8 +286,8 @@ public class UserControllerV1Test {
     @Test
     public void registerUserMultipleRolesSuccessCreated() throws Exception {
         Set<String> roles = new HashSet<>();
-        roles.add("SIMPLE_USER");
-        roles.add("USER_ADMIN");
+        roles.add(Role.SIMPLE_USER.getName());
+        roles.add(Role.USER_ADMIN.getName());
         CreateUserDto requestBody = new CreateUserDto("newUser", PASSWORD, roles);
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -342,7 +343,7 @@ public class UserControllerV1Test {
                                                               .accept(MediaType.APPLICATION_JSON));
 
         resultActions.andExpect(status().isForbidden())
-                .andExpect(content().string("Cannot delete user with ADMIN role"));
+                .andExpect(content().string("Cannot delete user with " + Role.ADMIN.getName() + " role"));
     }
 
     @Test
@@ -433,7 +434,7 @@ public class UserControllerV1Test {
                                                               .content(PASSWORD));
 
         resultActions.andExpect(status().isForbidden())
-                .andExpect(content().string("It is not allowed to modify the password of a user with ADMIN or USER_ADMIN role, unless you are the user itself"));
+                .andExpect(content().string("It is not allowed to modify the password of a user with " + Role.ADMIN.getName() + " or " + Role.USER_ADMIN.getName() + " role, unless you are the user itself"));
     }
 
     @Test
@@ -474,6 +475,4 @@ public class UserControllerV1Test {
                 .andExpect(jsonPath("$.id").value(adminId))
                 .andExpect(jsonPath("$.username").value(ADMIN_USERNAME));
     }
-
-    // TODO: factorize strings to constants
 }

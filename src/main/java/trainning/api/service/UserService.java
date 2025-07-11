@@ -7,6 +7,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import trainning.api.exception.*;
+import trainning.api.model.Role;
 import trainning.api.model.RoleModel;
 import trainning.api.model.UserModel;
 import trainning.api.repository.RoleRepository;
@@ -40,7 +41,7 @@ public class UserService {
                         .orElseThrow(() -> new InvalidRoleException("Role does not exists: " + roleName))).toList();
 
         userRoles.stream()
-                .filter(role -> role.getName().equals("ADMIN"))
+                .filter(role -> role.getName().equals(Role.ADMIN.getName()))
                 .findAny()
                 .ifPresent(role -> {
                     throw new AdminRoleException("Cannot register user with ADMIN role");
@@ -66,7 +67,7 @@ public class UserService {
     public String deleteUser(long id) {
         UserModel user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with ID " + id + " not found"));
 
-        if (user.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN"))) {
+        if (user.getRoles().stream().anyMatch(role -> role.getName().equals(Role.ADMIN.getName()))) {
             throw new AdminRoleException("Cannot delete user with ADMIN role");
         }
 
@@ -85,13 +86,13 @@ public class UserService {
                 .map(role -> role.startsWith("ROLE_") ? role.substring(5) : role)
                 .toList();
 
-        if (!rolesFromToken.contains("ADMIN") && !rolesFromToken.contains("USER_ADMIN")) {
+        if (!rolesFromToken.contains(Role.ADMIN.getName()) && !rolesFromToken.contains(Role.USER_ADMIN.getName())) {
             if (idFromToken != id) {
                 throw new UserNotAllowedException("User with ID " + idFromToken + " is only allowed to modify his own password, not the one of user with ID " + id);
             }
         }
 
-        if (userToRename.getRoles().stream().anyMatch(role -> role.getName().equals("ADMIN") || role.getName().equals("USER_ADMIN"))) {
+        if (userToRename.getRoles().stream().anyMatch(role -> role.getName().equals(Role.ADMIN.getName()) || role.getName().equals(Role.USER_ADMIN.getName()))) {
             if (idFromToken != id) {
                 throw new UserNotAllowedException("It is not allowed to modify the password of a user with ADMIN or USER_ADMIN role, unless you are the user itself");
             }
