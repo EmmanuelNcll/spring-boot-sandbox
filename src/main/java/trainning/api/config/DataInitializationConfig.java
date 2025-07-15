@@ -6,6 +6,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import trainning.api.model.Role;
 import trainning.api.model.RoleModel;
 import trainning.api.model.UserModel;
 import trainning.api.repository.RoleRepository;
@@ -30,23 +31,23 @@ public class DataInitializationConfig {
         return args -> { // If database is empty
             if (roleRepository.count() == 0) { // Create roles
                 RoleModel adminRole = new RoleModel();
-                adminRole.setName("ADMIN");
+                adminRole.setName(Role.ADMIN.getName());
                 roleRepository.save(adminRole);
 
                 RoleModel userAdminRole = new RoleModel();
-                userAdminRole.setName("USER_ADMIN");
+                userAdminRole.setName(Role.USER_ADMIN.getName());
                 roleRepository.save(userAdminRole);
 
                 RoleModel simpleUserRole = new RoleModel();
-                simpleUserRole.setName("SIMPLE_USER");
+                simpleUserRole.setName(Role.SIMPLE_USER.getName());
                 roleRepository.save(simpleUserRole);
             }
             if (userRepository.count() == 0) { // Create admin user
                 UserModel adminUser = new UserModel();
                 adminUser.setUsername("admin");
                 adminUser.setPassword(passwordEncoder.encode(adminPassword));
-                adminUser.setRole(
-                        roleRepository.findByName("ADMIN")
+                adminUser.addRole(
+                        roleRepository.findByName(Role.ADMIN.getName())
                 );
 
                 userRepository.save(adminUser);

@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import trainning.api.dto.AuthDto;
 import trainning.api.exception.InvalidCredentialsException;
 import trainning.api.exception.UserNotFoundException;
+import trainning.api.model.Role;
 import trainning.api.model.UserModel;
 import trainning.api.repository.RoleRepository;
 import trainning.api.repository.UserRepository;
@@ -48,7 +49,7 @@ public class AuthControllerV1Test {
         UserModel simpleUser = new UserModel();
         simpleUser.setUsername(SIMPLE_USER);
         simpleUser.setPassword(passwordEncoder.encode(PASSWORD));
-        simpleUser.setRole(roleRepository.findByName("SIMPLE_USER"));
+        simpleUser.addRole(roleRepository.findByName(Role.SIMPLE_USER.getName()));
         simpleUserId = userRepository.save(simpleUser).getId();
     }
 
