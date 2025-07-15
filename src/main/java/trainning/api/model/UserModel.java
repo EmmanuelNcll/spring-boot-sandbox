@@ -25,9 +25,18 @@ public class UserModel {
     @JoinTable(name = "api_user_role",
             joinColumns = @JoinColumn(name = "api_user_id"),
             inverseJoinColumns = @JoinColumn(name = "api_role_id"))
-    private Set<RoleModel> roles = new HashSet<>();
+    private Set<RoleModel> roles;
 
-    public void setRole(RoleModel role) {
+    public void addRole(RoleModel role) {
+        if( this.roles == null) {
+            this.roles = new HashSet<>();
+        }
         this.roles.add(role);
+    }
+
+    public void removeRoles() {
+        if (this.roles != null) {
+            this.roles.clear();
+        }
     }
 }

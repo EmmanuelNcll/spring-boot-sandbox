@@ -30,22 +30,15 @@ public class UserService {
             throw new UserAlreadyExistsException("Username already taken: " + username);
         }
 
-        List<RoleModel> allRoles = (List<RoleModel>) roleRepository.findAll();
         if (roles == null || roles.isEmpty()) {
             throw new InvalidRoleException("At least one role must be provided");
         }
-        List<RoleModel> userRoles = roles.stream()
-                .map(roleName -> allRoles.stream()
-                        .filter(role -> role.getName().equals(roleName))
-                        .findFirst()
-                        .orElseThrow(() -> new InvalidRoleException("Role does not exists: " + roleName))).toList();
 
-        userRoles.stream()
-                .filter(role -> role.getName().equals(Role.ADMIN.getName()))
-                .findAny()
-                .ifPresent(role -> {
-                    throw new AdminRoleException("Cannot register user with ADMIN role");
-                });
+        if (roles.contains(Role.ADMIN.getName())) {
+            throw new AdminRoleException("Cannot register user with " + Role.ADMIN.getName() + " role");
+        }
+
+        List<RoleModel> userRoles = convertToRoleModel(roles);
 
         UserModel user = new UserModel();
         user.setUsername(username);
@@ -54,7 +47,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(rawPassword));
 
         for(RoleModel role : userRoles) {
-            user.setRole(role);
+            user.addRole(role);
         }
 
         return userRepository.save(user);
@@ -68,7 +61,7 @@ public class UserService {
         UserModel user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with ID " + id + " not found"));
 
         if (user.getRoles().stream().anyMatch(role -> role.getName().equals(Role.ADMIN.getName()))) {
-            throw new AdminRoleException("Cannot delete user with ADMIN role");
+            throw new AdminRoleException("Cannot delete user with " + Role.ADMIN.getName() + " role");
         }
 
         userRepository.delete(user);
@@ -94,7 +87,7 @@ public class UserService {
 
         if (userToRename.getRoles().stream().anyMatch(role -> role.getName().equals(Role.ADMIN.getName()) || role.getName().equals(Role.USER_ADMIN.getName()))) {
             if (idFromToken != id) {
-                throw new UserNotAllowedException("It is not allowed to modify the password of a user with ADMIN or USER_ADMIN role, unless you are the user itself");
+                throw new UserNotAllowedException("It is not allowed to modify the password of a user with " + Role.ADMIN.getName() + " or " + Role.USER_ADMIN.getName() + " role, unless you are the user itself");
             }
         }
 
@@ -114,5 +107,40 @@ public class UserService {
         if (!password.matches(passwordPattern)) {
             throw new InvalidPasswordException("Password must be at least 10 characters long, contain at least one digit, one lowercase letter, one uppercase letter, and one special character");
         }
+    }
+
+    public UserModel modifyRole(long id, Set<String> roles) {
+        UserModel userToModify = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with ID " + id + " not found"));
+
+        if (userToModify.getRoles().stream().anyMatch(role -> role.getName().equals(Role.ADMIN.getName()))) {
+            throw new AdminRoleException("Cannot modify roles of user with " + Role.ADMIN.getName() + " role");
+        }
+
+        if (roles == null || roles.isEmpty()) {
+            throw new InvalidRoleException("At least one role must be provided");
+        }
+
+        if (roles.contains(Role.ADMIN.getName())) {
+            throw new AdminRoleException("Cannot give role " + Role.ADMIN.getName() + " to user");
+        }
+
+        List<RoleModel> newRoles = convertToRoleModel(roles);
+
+        userToModify.removeRoles();
+        for (RoleModel role : newRoles) {
+            userToModify.addRole(role);
+        }
+
+        return userRepository.save(userToModify);
+    }
+
+    private List<RoleModel> convertToRoleModel(Set<String> rolesToCheck) {
+        List<RoleModel> allRoles = (List<RoleModel>) roleRepository.findAll();
+
+        return rolesToCheck.stream()
+                .map(roleName -> allRoles.stream()
+                .filter(role -> role.getName().equals(roleName))
+                .findFirst()
+                .orElseThrow(() -> new InvalidRoleException("Role does not exists: " + roleName))).toList();
     }
 }

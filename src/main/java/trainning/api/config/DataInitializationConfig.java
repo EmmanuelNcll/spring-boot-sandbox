@@ -46,7 +46,7 @@ public class DataInitializationConfig {
                 UserModel adminUser = new UserModel();
                 adminUser.setUsername("admin");
                 adminUser.setPassword(passwordEncoder.encode(adminPassword));
-                adminUser.setRole(
+                adminUser.addRole(
                         roleRepository.findByName(Role.ADMIN.getName())
                 );
 

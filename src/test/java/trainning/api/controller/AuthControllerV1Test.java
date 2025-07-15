@@ -49,7 +49,7 @@ public class AuthControllerV1Test {
         UserModel simpleUser = new UserModel();
         simpleUser.setUsername(SIMPLE_USER);
         simpleUser.setPassword(passwordEncoder.encode(PASSWORD));
-        simpleUser.setRole(roleRepository.findByName(Role.SIMPLE_USER.getName()));
+        simpleUser.addRole(roleRepository.findByName(Role.SIMPLE_USER.getName()));
         simpleUserId = userRepository.save(simpleUser).getId();
     }
 

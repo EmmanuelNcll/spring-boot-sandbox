@@ -17,8 +17,10 @@ import trainning.api.dto.UserDto;
 import trainning.api.mapper.UserMapper;
 import trainning.api.service.UserService;
 
+import java.util.Set;
+
 @RestController
-@RequestMapping("/v1")
+@RequestMapping("/v1/user")
 @Validated
 @Tag(name = "User Management", description = "Endpoints for managing users")
 public class UserControllerV1 {
@@ -35,8 +37,8 @@ public class UserControllerV1 {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
-    @GetMapping("/user/{id}")
-    public ResponseEntity<UserDto> getUser(@PathVariable long id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDto> getUser(@PathVariable @Valid long id) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 userMapper.toDto(userService.getUser(id))
         );
@@ -50,8 +52,8 @@ public class UserControllerV1 {
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
-    @DeleteMapping("/user/{id}")
-    public ResponseEntity<String> deleteUser(@PathVariable long id) {
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteUser(@PathVariable @Valid long id) {
         return ResponseEntity.status(HttpStatus.OK).body(
                 userService.deleteUser(id)
         );
@@ -67,10 +69,27 @@ public class UserControllerV1 {
             @ApiResponse(responseCode = "405", description = "Wrong Method", content = @Content(mediaType = "application/json")),
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN', 'SIMPLE_USER')")
-    @PostMapping("/user/{id}/password")
-    public ResponseEntity<UserDto> modifyPassword(@PathVariable long id, @RequestBody @Valid String newPassword) {
+    @PostMapping("/{id}/password")
+    public ResponseEntity<UserDto> modifyPassword(@PathVariable @Valid long id, @RequestBody @Valid String newPassword) {
         UserDto modifiedUser = userMapper.toDto(
                 userService.modifyPassword(id, newPassword)
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(modifiedUser);
+    }
+
+    @Operation(summary = "Modify user roles", description = "Replacing the roles of an existing user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "User roles modified successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "403", description = "User not authorized to do this operation / Cannot give user role ADMIN / Cannot modify ADMIN roles", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping("{id}/modify")
+    public ResponseEntity<UserDto> modifyRole(@PathVariable @Valid long id, @RequestBody @Valid Set<String> roles) {
+        UserDto modifiedUser = userMapper.toDto(
+                userService.modifyRole(id, roles)
         );
         return ResponseEntity.status(HttpStatus.OK).body(modifiedUser);
     }
@@ -84,13 +103,11 @@ public class UserControllerV1 {
             @ApiResponse(responseCode = "409", description = "Username already exists", content = @Content(mediaType = "application/json")),
     })
     @PreAuthorize("hasAnyRole('ADMIN', 'USER_ADMIN')")
-    @PostMapping("/user/create")
+    @PostMapping("/create")
     public ResponseEntity<UserDto> registerUser(@RequestBody @Valid CreateUserDto userDto) {
         UserDto createdUser = userMapper.toDto(
                 userService.registerUser(userDto.getUsername(), userDto.getPassword(), userDto.getRoles())
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
-
-    // TODO: add role modification endpoint?
 }
