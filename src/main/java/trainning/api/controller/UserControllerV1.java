@@ -32,6 +32,7 @@ public class UserControllerV1 {
     @Operation(summary = "Get user by ID", description = "Retrieves a user by their ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found"),
+            @ApiResponse(responseCode = "400", description = "Wrong ID format"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "403", description = "User not authorized to do this operation", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
@@ -47,6 +48,7 @@ public class UserControllerV1 {
     @Operation(summary = "Delete a user", description = "Deletes a user by their ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User found"),
+            @ApiResponse(responseCode = "400", description = "Wrong ID format"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "403", description = "User not authorized to do this operation", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
@@ -62,7 +64,7 @@ public class UserControllerV1 {
     @Operation(summary = "Modify user's password", description = "Modify the password of the user (can be done by the user itself)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Password modified successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request payload / Invalid password", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload / Invalid password / Wrong ID format", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "403", description = "User not authorized to do this operation", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
@@ -80,7 +82,7 @@ public class UserControllerV1 {
     @Operation(summary = "Modify user roles", description = "Replacing the roles of an existing user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User roles modified successfully"),
-            @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found", content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "Invalid request payload / Role not found / Wrong ID format", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "401", description = "Unauthorized - JWT Token is missing or invalid", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "403", description = "User not authorized to do this operation / Cannot give user role ADMIN / Cannot modify ADMIN roles", content = @Content(mediaType = "application/json")),
             @ApiResponse(responseCode = "404", description = "User not found", content = @Content(mediaType = "application/json")),
