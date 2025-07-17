@@ -12,11 +12,11 @@ import java.util.Set;
 public class UserDto {
     @Schema(description = "User ID")
     @NotNull(message = "User ID must not be null")
-    private Long id;
+    private final Long id;
     @Schema(description = "Username")
     @NotNull(message = "Username must not be null")
-    private String username;
-    private Set<RoleDto> roles;
+    private final String username;
+    private final Set<RoleDto> roles;
 
     public UserDto(Long id, String username, Set<RoleModel> roles) {
         this.id = id;

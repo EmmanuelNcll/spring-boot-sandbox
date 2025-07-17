@@ -6,12 +6,13 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8080:8080"
+      - "8080:8443"
     environment:
       SPRING_PROFILES_ACTIVE: prod
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
     depends_on:
       - postgres
     networks:

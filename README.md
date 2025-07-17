@@ -10,7 +10,9 @@ You need to install ``maven``, ``Java 17`` and ``Docker``.
 
 How to launch the dev environment locally, on port `8080`, with a Postgres database on port `5432`.
 
-> NB: Swagger UI will be available at http://localhost:8080/api/swagger-ui/index.html.
+Swagger UI will be available at http://localhost:8080/api/swagger-ui/index.html.
+
+You can authenticate using user `admin` with password `Password#1`.
 
 ### On Linux
 
@@ -45,11 +47,14 @@ mvn test
 
 ## 4. Launching production environment
 
-First, you need to create a `.env` file at the root of the project with the following environment variables:
+First, ensure you have a valid SSL certificate/keystore `keystore.p12` in your project's resources.
+
+Then, you need to create a `.env` file at the root of the project with the following environment variables:
 ```
 JWT_SECRET=
 POSTGRES_PASSWORD=
 ADMIN_PASSWORD=
+KEYSTORE_PASSWORD=
 ```
 
 Then, you need to build the project using:
@@ -62,9 +67,10 @@ Finally, you can build and deploy the containerized API using:
 docker-compose up -d --build
 ```
 
+Swagger UI will be available at https://localhost:8080/api/swagger-ui/index.html.
+
 ## 5. TODOs
 
-- Add nginx as a load balancer + manage HTTPS ?
 - Add log mechanism
 - Write documentation (user doc, dev doc, api/tech doc)
 - Add community standards on GitHub
