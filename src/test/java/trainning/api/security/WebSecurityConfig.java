@@ -32,8 +32,8 @@ public class WebSecurityConfig {
                 .requestMatchers("/swagger-ui/*").permitAll()
                 .requestMatchers("/v3/api-docs").permitAll()
                 .requestMatchers("/v3/api-docs/*").permitAll()
-                .anyRequest().authenticated()
-        ).addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
+                .anyRequest().authenticated())
+        .addFilterBefore(new JwtAuthenticationFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class)
         .csrf(AbstractHttpConfigurer::disable) // Only for testing purposes
         .exceptionHandling(
             exceptionHandling -> exceptionHandling
