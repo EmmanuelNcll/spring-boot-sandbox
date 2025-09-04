@@ -135,13 +135,12 @@
   </dependencies>
 
   <build>
+    <finalName>api</finalName>
     <plugins>
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <configuration>
-          <finalName>api</finalName>
-        </configuration>
+        <version>${spring.boot.version}</version>
       </plugin>
     </plugins>
   </build>
