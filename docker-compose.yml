@@ -13,6 +13,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       KEYSTORE_PASSWORD: ${KEYSTORE_PASSWORD}
+      KEYSTORE_ALIAS: ${KEYSTORE_ALIAS}
     depends_on:
       - postgres
     networks:

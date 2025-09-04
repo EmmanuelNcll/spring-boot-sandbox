@@ -25,7 +25,7 @@ The following command will start a Postgres database in a Docker container and l
 
 The following command will start a Postgres database in a Docker container and launch the Spring Boot API using maven:
 ```bash
-run.bat
+.\run.bat
 ```
 
 ### Using IntelliJ
@@ -47,7 +47,7 @@ mvn test
 
 ## 4. Launching production environment
 
-First, ensure you have a valid SSL certificate/keystore `keystore.p12` in your project's resources.
+First, ensure you have a valid SSL certificate/keystore `keystore.p12` in your project's resource folder (`src/main/resources`).
 
 Then, you need to create a `.env` file at the root of the project with the following environment variables:
 ```
@@ -55,6 +55,7 @@ JWT_SECRET=
 POSTGRES_PASSWORD=
 ADMIN_PASSWORD=
 KEYSTORE_PASSWORD=
+KEYSTORE_ALIAS=
 ```
 
 Then, you need to build the project using:
@@ -72,8 +73,6 @@ Swagger UI will be available at https://localhost:8080/api/swagger-ui/index.html
 ## 5. TODOs
 
 - Add log mechanism
-- Write documentation (user doc, dev doc, api/tech doc)
-- Add community standards on GitHub
 - Switch on GitHub security tools
 - Use/generate "test as documentation"
 - Add performance tests
